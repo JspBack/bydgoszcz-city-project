@@ -13,3 +13,7 @@ Wyswietlanie pinezki
 Popup ze udalo sie cos odkryc 
 Popup po nacisnieciu na pinezke
 Popup o hidden place
+
+Dodatki:
+Ścieżki
+Dark mode/ light mode
