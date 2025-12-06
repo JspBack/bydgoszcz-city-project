@@ -7,8 +7,8 @@ services:
       - .env
 
   backend:
-    container_name: frontend
+    container_name: backend
     build:
-      context: ./frontend
+      context: ./backend
     env_file:
       - .env

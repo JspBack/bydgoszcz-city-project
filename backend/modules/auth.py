@@ -14,13 +14,14 @@ def register(user: UserAuth, conn: Connection):
                 "INSERT INTO users (email, password_hash) VALUES (%s, %s) RETURNING id, email",
                 (user.email, hashed_pwd)
             )
+
             new_user = cur.fetchone()                    
-            
+
             return JSONResponse(
                 status_code=status.HTTP_201_CREATED,
                 content={
                     "message": "User registered successfully",
-                    "user_id": new_user[0], # type: ignore
+                    "user_id": str(new_user[0]), # type: ignore
                     "email": new_user[1] # type: ignore
                 }
             )
@@ -28,14 +29,14 @@ def register(user: UserAuth, conn: Connection):
     except errors.UniqueViolation:
         raise HTTPException(status_code=400, detail="Email already exists")
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
 
 
 def login(user: UserAuth, conn: Connection):
     with conn.cursor() as cur:
         cur.execute(
             "SELECT id, email, password_hash FROM users WHERE email = %s", 
-            (user.email,)   
+            (user.email,)
         )
         record = cur.fetchone()
 
@@ -51,7 +52,7 @@ def login(user: UserAuth, conn: Connection):
         status_code=status.HTTP_200_OK,
         content={
             "message": "Login successful", 
-            "user_id": user_id, 
+            "user_id": str(user_id), 
             "email": email
         }
     )

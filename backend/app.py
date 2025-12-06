@@ -4,7 +4,7 @@ from fastapi import FastAPI, Depends
 from psycopg import connect
 from contextlib import asynccontextmanager
 from utils.db import get_db
-
+from models.auth import UserAuth
 
 # Development specific
 from dotenv import load_dotenv
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
             with conn.cursor() as cur:
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS users (
-                        id SERIAL PRIMARY KEY,
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         email VARCHAR(255) UNIQUE NOT NULL,
                         password_hash VARCHAR(255) NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -36,13 +36,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, docs_url="/api/v1/docs")
 
 
-@app.post("api/v1/login", tags=["auth"])
-def login_ep(data, conn = Depends(get_db)):
-    login(data,conn)
+@app.post("/api/v1/login", tags=["auth"])
+def login_ep(data:UserAuth, conn = Depends(get_db)):
+    return login(data,conn)
 
-@app.post("api/v1/register", tags=["auth"])
-def register_ep(data,conn = Depends(get_db)):
-    register(data,conn)
+@app.post("/api/v1/register", tags=["auth"])
+def register_ep(data: UserAuth,conn = Depends(get_db)):
+    return register(data,conn)
 
 if __name__ == "__main__":
     import uvicorn
