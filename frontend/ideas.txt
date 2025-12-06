@@ -1,0 +1,7 @@
+Odkryta pinezka zmienia kolor na zielony
+Trasy do danej pinezki sie wyswietla najszybsza droga
+Progress bar z iloscia odkrytych miejsc
+Secret places odblokowuja sie jak jest sie 1 km od miejsca
+Do secret places popup jak jest sie blisko z info
+Pinezka hidden place ma inny kolor na mapce
+
