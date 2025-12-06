@@ -1,0 +1,10 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+
+  backend:
+    container_name: frontend
+    build:
+      context: ./frontend
