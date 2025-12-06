@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"Database initialization failed: {e}")
     yield
 
-app = FastAPI(lifespan=lifespan, docs_url="api/v1/docs")
+app = FastAPI(lifespan=lifespan, docs_url="/api/v1/docs")
 
 
 @app.post("api/v1/login", tags=["auth"])
