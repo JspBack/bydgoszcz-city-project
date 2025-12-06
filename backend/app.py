@@ -25,7 +25,7 @@ from modules.user import delete_user, get_user
 from psycopg import connect
 from utils.db import get_db
 
-load_dotenv(".env")
+load_dotenv()
 
 PORT = int(os.getenv("PORT", 8000))
 
