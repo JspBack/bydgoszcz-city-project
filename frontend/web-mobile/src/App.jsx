@@ -1,35 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { MapView } from './components/MapView';
+import { TopBar } from './components/TopBar';
+import { ProgressBar } from './components/ProgressBar';
+import './components/component.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const discoveredPins = 5;
+  const totalPins = 12;
+  const discoveredThings = 1;
+  const totalThings = 8;
+
+  const pinsPercentage = (discoveredPins / totalPins) * 100;
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="app-container">
+      <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-export default App
+      <div className="progress-section">
+        <ProgressBar
+          label="Odkryte piny"
+          current={discoveredPins}
+          total={totalPins}
+          percentage={pinsPercentage}
+          color="green"
+        />
+      </div>
+
+      <div className="progress-section">
+        <ProgressBar
+          label="Odkryte rzeczy"
+          current={discoveredThings}
+          total={totalThings}
+          percentage={(discoveredThings / totalThings) * 100}
+          color="purple"
+        />
+      </div>
+
+      <div className="map-container">
+        <MapView discoveredPins={discoveredPins} />
+
+        {/* Sidebar */}
+        <div
+          className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}
+        >
+          <div className="sidebar-content">
+            <h2 className="sidebar-title">Menu</h2>
+            <ul className="sidebar-list">
+              <li>Mapa</li>
+              <li>Odkrycia</li>
+              <li>Profil</li>
+              <li>Ustawienia</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
