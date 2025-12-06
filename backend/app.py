@@ -9,6 +9,7 @@ from modules.locations import create_location, get_all_locations, get_location_b
 from models.auth import UserAuth
 from models.locations import LocationCreate, LocationUpdate
 from modules.user import get_user, delete_user
+from modules.progress import progress_check
 
 from utils.db import get_db
 
@@ -67,6 +68,11 @@ def login_ep(data:UserAuth, conn = Depends(get_db)):
 @app.post("/api/v1/register", tags=["auth"])
 def register_ep(data: UserAuth, conn=Depends(get_db)):
     return register(data, conn)
+
+# Progress endpoints
+@app.get("/api/v1/progress", tags=["progress"])
+def get_progress(user_id: UUID, conn=Depends(get_db)):
+    return progress_check(user_id, conn)
 
 # User endpoints
 @app.get("/api/v1/user/{user_id}", tags=["user"])
