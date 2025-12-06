@@ -1,13 +1,16 @@
 import logging, os
 from uuid import UUID
-from modules.auth import login, register
-from modules.locations import create_location, get_all_locations, get_location_by_id, update_location, delete_location, search_locations, get_nearby_locations
 from fastapi import FastAPI, Depends, Query
 from psycopg import connect
 from contextlib import asynccontextmanager
-from utils.db import get_db
+
+from modules.auth import login, register
+from modules.locations import create_location, get_all_locations, get_location_by_id, update_location, delete_location, search_locations, get_nearby_locations
 from models.auth import UserAuth
 from models.locations import LocationCreate, LocationUpdate
+from modules.user import get_user
+
+from utils.db import get_db
 
 # Development specific
 from dotenv import load_dotenv
@@ -63,6 +66,11 @@ def login_ep(data:UserAuth, conn = Depends(get_db)):
 @app.post("/api/v1/register", tags=["auth"])
 def register_ep(data: UserAuth, conn=Depends(get_db)):
     return register(data, conn)
+
+
+@app.get("/api/v1/user/{user_id}", tags=["user"])
+def get_user_ep(user_id: str, conn = Depends(get_db)):
+    return get_user(user_id, conn)
 
 
 # Location endpoints
