@@ -10,6 +10,7 @@ from models.auth import UserAuth
 from models.locations import LocationCreate, LocationUpdate
 from modules.user import get_user, delete_user
 from modules.progress import progress_check
+from modules.qr import scan
 
 from utils.db import get_db
 
@@ -66,6 +67,11 @@ def login_ep(data:UserAuth, conn = Depends(get_db)):
 @app.post("/api/v1/register", tags=["auth"])
 def register_ep(data: UserAuth, conn=Depends(get_db)):
     return register(data, conn)
+
+# Qr endpoints
+@app.post("/api/v1/scan", tags=["qr"])
+def scan_qr(hashed_id: str, user_id: UUID, conn=Depends(get_db)):
+    return scan(hashed_id, user_id, conn)
 
 # Progress endpoints
 @app.get("/api/v1/progress", tags=["progress"])

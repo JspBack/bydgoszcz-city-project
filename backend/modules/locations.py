@@ -284,9 +284,22 @@ def mark_location_found(location_id: UUID, user_id: UUID, conn: Connection):
     try:
         with conn.cursor() as cur:
             cur.execute(
+                "SELECT type FROM users WHERE id = %s", 
+                (user_id,)
+            )
+
+            user = cur.fetchone()
+            if user is None:
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            if user[0] != 1:
+                raise HTTPException(status_code=403, detail="Admin only EP")
+            
+            cur.execute(
                 "SELECT id FROM locations WHERE id = %s",
                 (location_id,)
             )
+
             if cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Location not found")
 
