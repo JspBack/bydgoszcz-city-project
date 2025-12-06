@@ -1,4 +1,6 @@
- export function TopBar({ onMenuClick }) {
+import React from 'react';
+
+export default function TopBar() {
   return (
     <div className="topbar">
       <button className="topbar-menu" onClick={onMenuClick}>
