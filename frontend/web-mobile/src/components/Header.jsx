@@ -6,9 +6,10 @@ const headerStyle = {
     backgroundColor: 'white',
     borderBottom: '1px solid #e0e0e0',
     boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-    position: 'relative', // Przydatne, aby header był zawsze na górze
+    position: 'relative',
     top: 0,
     zIndex: 1000,
+    overflow: 'visible',
 };
 
 const navBarStyle = {
@@ -31,6 +32,12 @@ const logoImageStyle = {
     marginRight: '8px',
 };
 
+const ALL_PLACES = [
+    "Fontanna Potop", "Kazimierz Wielki", "Przechodzący przez Rzekę",
+    "Pomnik Kopernika", "Ławeczka Mariana Rejewskiego", "Rzeźba Łuczniczki", 
+    "Zegar z czasem bydgoskim", "Mistrz Twardowski"
+];
+
 const Header = ({ 
     discoveredPins, 
     totalPins, 
@@ -40,20 +47,28 @@ const Header = ({
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
-        console.log(`Menu jest teraz: ${!isMenuOpen} ? 'otwarte' : 'zamkniete"}`);
     }
-    const menuOverlayStyle = {
-        position: 'absolute',
-        top: '100%',
+const NAVIGATION_HEIGHT = '150px';
+const menuOverlayStyle = (isMenuOpen) => ({
+        position: 'fixed',
+        top: 0,
         right: 0,
-        width: '250px',
+        width: '300px',
         backgroundColor: '#fff',
         border: '1px solid #ccc',
         boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
         zIndex: 2000,
         padding: '15px',
-        display: isMenuOpen ? 'block' : 'none',
-    };
+        transition: 'transform 0.3s ease-in-out',
+        transform: isMenuOpen ? 'translateX(0)' : 'translateX(100%)',
+    });
+
+    const menuContentStyle = {
+    paddingTop: NAVIGATION_HEIGHT,
+    padding: '15px',
+    overflowY: 'auto',
+    height: '100%',
+};
     const infoTextStyle = {
         textAlign: 'center',
         fontSize: '1.2em',
@@ -92,17 +107,6 @@ return (
                     ☰ 
                 </div> 
             </div>
-            <div style={menuOverlayStyle}>
-                <h3>Menu Główne</h3>
-                <p>Fontanna Potop</p>
-                <p>Kazimierze Wielki</p>
-                <p>Przechodzący przez Ramkę</p>
-                <p>Pomnik Kopernika</p>
-                <p>Ławeczka Mariana Rejewskiego</p>
-                <p>Rzeźba Łuczniczki</p>
-                <p>Zegar z czasem bydgoskim</p>
-                <p></p>
-            </div>
             
             {/* Normal pins */}
             <ProgressBar 
@@ -119,7 +123,29 @@ return (
                 total={totalEasterEggs}        
                 barColor="#9C27B0" 
             />
-            
+           <div style={menuOverlayStyle(isMenuOpen)}>
+                <div style={menuContentStyle}>
+                    <div style={{fontWeight: 'bold', fontSize: '1.2em', marginBottom: '15px', color: 'black'}}>Przeglądaj miejsca</div>
+                    
+                    {ALL_PLACES.map((place, index) => (
+                        <div key={index} style={{
+                            padding: '10px 0',
+                            borderBottom: '1px solid #eee',
+                            fontSize: '16px',
+                            color: 'black',
+                        }}>
+                            {place}
+                        </div>
+                    ))}
+                    
+                    <button 
+                        onClick={toggleMenu} 
+                        style={{ marginTop: '20px', padding: '10px', width: '100%' }}
+                    >
+                        Zamknij
+                    </button>
+                </div>
+            </div> 
         </header>
     );
 };

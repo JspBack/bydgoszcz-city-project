@@ -41,8 +41,27 @@ L.Icon.Default.mergeOptions({
 });
 
 
+
 const MapView = () => {
     
+const handleOpenCamera = async (placeName) => {
+    console.log(`Try opening camera for place: ${placeName}`);
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+        });
+        console.log('Camera approved');
+        alert(`Aparat włączony!`)
+        } catch (error) {
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                alert('Odrzucono zgodę na użycie aparatu.');
+            } else {
+                console.error('Błąd w dostępie do aparatu:', error);
+                alert('Wystąpił problem z dostępem do aparatu. Spróbuj ponownie.');
+            }
+    } 
+};
     // Użyjemy stylu w komponencie do ustalenia wysokości mapy
     return (
         <div style={{ height: '70vh', width: '100%' }}>
@@ -63,13 +82,35 @@ const MapView = () => {
                     <Marker 
                         key={place.id} 
                         position={place.coords} 
-                        icon={grayIcon} // <= UŻYWAMY SZAREJ IKONY
+                        icon={(grayIcon)}
                     >
                         <Popup>
                             <h3>{place.name}</h3>
                             <p>{place.address}</p>
-                            <p></p>
-                            <button>Zrób zdjęcie</button>
+                            <label htmlFor= {`camera-input-${place.id}`}
+                            style={{ 
+                                    backgroundColor: '#111', 
+                                    color: 'white', 
+                                    padding: '10px 15px', 
+                                    border: 'none', 
+                                    borderRadius: '5px', 
+                                    cursor: 'pointer',
+                                    marginTop: '10px',
+                                    display: 'inline-block' // Umożliwia stylowanie jako blok
+                                }}
+                                >Zrób zdjęcie</label>
+                                <input
+                                id={`camera-input-${place.id}`}
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                style = {{ display: 'none' }}
+
+                                onChange={(event) => {
+                                    console.log('Zdjecie zrobione');
+                                    const file = event.target.files[0];
+                                }}
+                                ></input>
                         </Popup>
                     </Marker>
                 ))}
@@ -77,4 +118,5 @@ const MapView = () => {
         </div>
     );
 };
+
 export default MapView;
