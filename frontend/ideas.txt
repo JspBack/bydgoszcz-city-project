@@ -6,3 +6,10 @@ Do secret places popup jak jest sie blisko z info
 Pinezka hidden place ma inny kolor na mapce
 Nakladka z naklejka zeby sobie zrobic fote mozna bylo
 
+
+Walidacja lokalizacji
+Walidacja kamera
+Wyswietlanie pinezki
+Popup ze udalo sie cos odkryc 
+Popup po nacisnieciu na pinezke
+Popup o hidden place
