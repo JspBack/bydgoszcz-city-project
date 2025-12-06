@@ -6,7 +6,22 @@ services:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgres/data
+  # cache:
+  #   image: redis:8.0-rc1
+  #   restart: always
+  #   container_name: redis
+  #   ports:
+  #     - "6379:6379"
+  #   environment:
+  #     - REDIS_PORT=6379
+  #     - REDIS_DATABASES=16
+  #   volumes:
+  #     - redis_data:/data
+
 volumes:
+  # redis_data:
   postgres_data:

@@ -1,14 +1,9 @@
 from fastapi import  HTTPException, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, EmailStr
 from psycopg import errors, Connection
 
 from utils.hash import get_password_hash, verify_password
-
-class UserAuth(BaseModel):
-    email: EmailStr
-    password: str = Field(..., min_length=6)
-
+from models.auth import UserAuth
 
 def register(user: UserAuth, conn: Connection):
     hashed_pwd = get_password_hash(user.password)
@@ -40,7 +35,7 @@ def login(user: UserAuth, conn: Connection):
     with conn.cursor() as cur:
         cur.execute(
             "SELECT id, email, password_hash FROM users WHERE email = %s", 
-            (user.email,)
+            (user.email,)   
         )
         record = cur.fetchone()
 
