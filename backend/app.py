@@ -1,27 +1,37 @@
-import logging, os
-from uuid import UUID
-from fastapi import FastAPI, Depends, Query
-from psycopg import connect
+import logging
+import os
 from contextlib import asynccontextmanager
-
-from modules.auth import login, register
-from modules.locations import create_location, get_all_locations, get_location_by_id, update_location, delete_location, search_locations, get_nearby_locations, mark_location_found
-from models.auth import UserAuth
-from models.locations import LocationCreate, LocationUpdate
-from modules.user import get_user, delete_user
-from modules.progress import progress_check
-from modules.qr import scan
-
-from utils.db import get_db
+from uuid import UUID
 
 # Development specific
 from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, Query
+from models.auth import UserAuth
+from models.locations import LocationCreate, LocationUpdate
+from modules.auth import login, register
+from modules.locations import (
+    create_location,
+    delete_location,
+    get_all_locations,
+    get_location_by_id,
+    get_nearby_locations,
+    mark_location_found,
+    search_locations,
+    update_location,
+)
+from modules.progress import progress_check
+from modules.qr import scan
+from modules.user import delete_user, get_user
+from psycopg import connect
+from utils.db import get_db
+
 load_dotenv(".env")
 
-PORT = int(os.getenv('PORT', 8000))
+PORT = int(os.getenv("PORT", 8000))
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,7 +59,8 @@ async def lifespan(app: FastAPI):
                         long_description TEXT,
                         latitude DOUBLE PRECISION NOT NULL,
                         longitude DOUBLE PRECISION NOT NULL,
-                        is_secret BOOLEAN DEFAULT FALSE
+                        is_secret BOOLEAN DEFAULT FALSE,
+                        category VARCHAR(100) DEFAULT 'general',
                     );
                 """)
                 logger.info("Database initialized: 'locations' table checked.")
@@ -57,34 +68,40 @@ async def lifespan(app: FastAPI):
         logger.error(f"Database initialization failed: {e}")
     yield
 
+
 app = FastAPI(lifespan=lifespan, docs_url="/api/v1/docs")
 
 
 @app.post("/api/v1/login", tags=["auth"])
-def login_ep(data:UserAuth, conn = Depends(get_db)):
-    return login(data,conn)
+def login_ep(data: UserAuth, conn=Depends(get_db)):
+    return login(data, conn)
+
 
 @app.post("/api/v1/register", tags=["auth"])
 def register_ep(data: UserAuth, conn=Depends(get_db)):
     return register(data, conn)
+
 
 # Qr endpoints
 @app.post("/api/v1/scan", tags=["qr"])
 def scan_qr(hashed_id: str, user_id: UUID, conn=Depends(get_db)):
     return scan(hashed_id, user_id, conn)
 
+
 # Progress endpoints
 @app.get("/api/v1/progress", tags=["progress"])
 def get_progress(user_id: UUID, conn=Depends(get_db)):
     return progress_check(user_id, conn)
 
+
 # User endpoints
 @app.get("/api/v1/user/{user_id}", tags=["user"])
-def get_user_ep(user_id: UUID, conn = Depends(get_db)):
+def get_user_ep(user_id: UUID, conn=Depends(get_db)):
     return get_user(user_id, conn)
 
+
 @app.delete("/api/v1/user/{user_id}", tags=["user"])
-def del_user_ep(user_id: UUID, conn = Depends(get_db)):
+def del_user_ep(user_id: UUID, conn=Depends(get_db)):
     return delete_user(user_id, conn)
 
 
@@ -99,7 +116,7 @@ def get_locations_ep(
     include_secret: bool = Query(False),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    conn=Depends(get_db)
+    conn=Depends(get_db),
 ):
     return get_all_locations(conn, include_secret, limit, offset)
 
@@ -108,7 +125,7 @@ def get_locations_ep(
 def search_locations_ep(
     q: str = Query(..., min_length=1),
     limit: int = Query(50, ge=1, le=200),
-    conn=Depends(get_db)
+    conn=Depends(get_db),
 ):
     return search_locations(q, conn, limit)
 
@@ -119,7 +136,7 @@ def get_nearby_locations_ep(
     lng: float = Query(...),
     radius: float = Query(5.0, ge=0.1, le=100),
     limit: int = Query(50, ge=1, le=200),
-    conn=Depends(get_db)
+    conn=Depends(get_db),
 ):
     return get_nearby_locations(lat, lng, radius, conn, limit)
 
@@ -138,10 +155,13 @@ def update_location_ep(location_id: UUID, data: LocationUpdate, conn=Depends(get
 def delete_location_ep(location_id: UUID, conn=Depends(get_db)):
     return delete_location(location_id, conn)
 
+
 @app.patch("/api/v1/locations/{location_id}/found", tags=["locations"])
 def mark_location_as_found(location_id: UUID, user_id: UUID, conn=Depends(get_db)):
     return mark_location_found(location_id, user_id, conn)
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=PORT)

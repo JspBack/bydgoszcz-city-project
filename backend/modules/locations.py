@@ -14,8 +14,8 @@ def create_location(
     try:
         with conn.cursor() as cur:
             cur.execute(
-                """INSERT INTO locations (name, description, long_description, latitude, longitude, is_secret)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                """INSERT INTO locations (name, description, long_description, latitude, longitude, is_secret, category)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, name""",
                 (
                     loc.name,
@@ -24,6 +24,7 @@ def create_location(
                     loc.latitude,
                     loc.longitude,
                     loc.is_secret,
+                    loc.category,
                 ),
             )
             new_location = cur.fetchone()
@@ -58,7 +59,7 @@ def get_all_locations(
         with conn.cursor() as cur:
             if include_secret:
                 cur.execute(
-                    """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret
+                    """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category
                     FROM locations
                     ORDER BY upload_date DESC
                     LIMIT %s OFFSET %s""",
@@ -86,6 +87,7 @@ def get_all_locations(
                     "latitude": row[5],
                     "longitude": row[6],
                     "is_secret": row[7],
+                    "category": row[8],
                 }
                 for row in rows
             ]
@@ -103,7 +105,7 @@ def get_location_by_id(location_id: UUID, conn: Connection):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret
+                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category
                 FROM locations
                 WHERE id = %s""",
                 (location_id,),
@@ -122,6 +124,7 @@ def get_location_by_id(location_id: UUID, conn: Connection):
                 "latitude": row[5],
                 "longitude": row[6],
                 "is_secret": row[7],
+                "category": row[8],
             }
 
             return JSONResponse(status_code=status.HTTP_200_OK, content=location)
@@ -155,6 +158,9 @@ def update_location(location_id: UUID, loc: LocationUpdate, conn: Connection):
         if loc.is_secret is not None:
             update_fields.append("is_secret = %s")
             values.append(loc.is_secret)
+        if loc.category is not None:
+            update_fields.append("category = %s")
+            values.append(loc.category)
 
         if not update_fields:
             raise HTTPException(status_code=400, detail="No fields to update")
@@ -220,7 +226,7 @@ def search_locations(query: str, conn: Connection, limit: int = 50):
         with conn.cursor() as cur:
             search_pattern = f"%{query}%"
             cur.execute(
-                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret
+                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category
                 FROM locations
                 WHERE (name ILIKE %s OR description ILIKE %s OR long_description ILIKE %s)
                 AND is_secret = FALSE
@@ -241,6 +247,7 @@ def search_locations(query: str, conn: Connection, limit: int = 50):
                     "latitude": row[5],
                     "longitude": row[6],
                     "is_secret": row[7],
+                    "category": row[8],
                 }
                 for row in rows
             ]
@@ -269,7 +276,7 @@ def get_nearby_locations(
         with conn.cursor() as cur:
             # Using Haversine formula approximation for distance calculation
             cur.execute(
-                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret,
+                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category
                 (6371 * acos(cos(radians(%s)) * cos(radians(latitude)) * cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * sin(radians(latitude)))) AS distance
                 FROM locations
                 WHERE is_secret = FALSE
@@ -291,7 +298,8 @@ def get_nearby_locations(
                     "latitude": row[5],
                     "longitude": row[6],
                     "is_secret": row[7],
-                    "distance_km": round(row[9], 2),
+                    "category": row[8],
+                    "distance_km": round(row[10], 2),
                 }
                 for row in rows
             ]
