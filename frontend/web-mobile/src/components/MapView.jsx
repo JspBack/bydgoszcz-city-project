@@ -21,11 +21,15 @@ L.Icon.Default.mergeOptions({
     // Współrzędne początkowego widoku
     const position = [53.1235, 18.0084];
     const initialPlaces = [
-        { id: 1, name: 'Spichrze nad Brdą', coords: [53.1221, 18.0019] },
-        { id: 2, name: 'Pomnik Łuczniczki', coords: [53.1232, 17.9904] },
-        { id: 3, name: 'Wyspa Młyńska', coords: [53.1256, 17.9961] },
-        { id: 4, name: 'Opera Nova', coords: [53.1245, 18.0063] },
-];
+        { id: 1, name: 'Fontanna Potop', coords: [53.12688833879727, 18.006254141088036], address: 'Stary Rynek 15, Bydgoszcz' },
+        { id: 2, name: 'Kazimierz Wielki', coords: [53.12267718422295, 17.997524442342453], address: 'Stary Rynek 15, Bydgoszcz' },
+        { id: 3, name: 'Przechodzący przez Rzekę', coords: [53.12389793027659, 18.001607518341864], address: 'Stary Rynek 15, Bydgoszcz' },
+        { id: 4, name: 'Pomnik Kopernika', coords: [53.12890755721382, 18.013053833690282], address: 'Stary Rynek 15, Bydgoszcz' },
+        { id: 5, name: 'Ławeczka Mariana Rejewskiego', coords: [53.128621158509915, 18.005987610404663], address: 'Stary Rynek 15, Bydgoszcz' },
+        { id: 6, name: 'Rzeźba Łuczniczki', coords: [53.13089183902998, 18.01210701584773], address: 'Stary Rynek 15, Bydgoszcz' },
+        { id: 7, name: 'Zegar z czasem bydgoskim', coords: [53.123094839913556, 18.00003099986527], address: 'Stary Rynek 15, Bydgoszcz' },
+        { id: 8, name: 'Mistrz Twardowski', coords: [53.12272049442523, 18.00115590552007], address: 'Stary Rynek 15, Bydgoszcz' }, //this adress is good
+]
 
    const grayIcon = L.icon({
     iconUrl: markerIcon, 
@@ -63,7 +67,9 @@ const MapView = () => {
                     >
                         <Popup>
                             <h3>{place.name}</h3>
-                            <p style={{ color: 'gray' }}>Miejsce do odwiedzenia.</p>
+                            <p>{place.address}</p>
+                            <p></p>
+                            <button>Zrób zdjęcie</button>
                         </Popup>
                     </Marker>
                 ))}
