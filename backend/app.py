@@ -24,11 +24,20 @@ async def lifespan(app: FastAPI):
                     CREATE TABLE IF NOT EXISTS users (
                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         email VARCHAR(255) UNIQUE NOT NULL,
+                        type INT NOT NULL,
                         password_hash VARCHAR(255) NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     );
                 """)
                 logger.info("Database initialized: 'users' table checked.")
+
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS locations (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        name VARCHAR(255) NOT NULL
+                    );
+                """)
+                logger.info("Database initialized: 'locations' table checked.")
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
     yield

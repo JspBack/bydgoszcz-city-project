@@ -11,8 +11,8 @@ def register(user: UserAuth, conn: Connection):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO users (email, password_hash) VALUES (%s, %s) RETURNING id, email",
-                (user.email, hashed_pwd)
+                "INSERT INTO users (email, password_hash, type) VALUES (%s, %s, %s) RETURNING id, email",
+                (user.email, hashed_pwd, 1)
             )
 
             new_user = cur.fetchone()                    
