@@ -5,10 +5,10 @@ from psycopg import connect
 from contextlib import asynccontextmanager
 
 from modules.auth import login, register
-from modules.locations import create_location, get_all_locations, get_location_by_id, update_location, delete_location, search_locations, get_nearby_locations
+from modules.locations import create_location, get_all_locations, get_location_by_id, update_location, delete_location, search_locations, get_nearby_locations, mark_location_found
 from models.auth import UserAuth
 from models.locations import LocationCreate, LocationUpdate
-from modules.user import get_user
+from modules.user import get_user, delete_user
 
 from utils.db import get_db
 
@@ -32,7 +32,8 @@ async def lifespan(app: FastAPI):
                         email VARCHAR(255) UNIQUE NOT NULL,
                         type INT NOT NULL,
                         password_hash VARCHAR(255) NOT NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        found_locs UUID[] DEFAULT ARRAY[]::UUID[]
                     );
                 """)
                 logger.info("Database initialized: 'users' table checked.")
@@ -67,10 +68,14 @@ def login_ep(data:UserAuth, conn = Depends(get_db)):
 def register_ep(data: UserAuth, conn=Depends(get_db)):
     return register(data, conn)
 
-
+# User endpoints
 @app.get("/api/v1/user/{user_id}", tags=["user"])
-def get_user_ep(user_id: str, conn = Depends(get_db)):
+def get_user_ep(user_id: UUID, conn = Depends(get_db)):
     return get_user(user_id, conn)
+
+@app.delete("/api/v1/user/{user_id}", tags=["user"])
+def del_user_ep(user_id: UUID, conn = Depends(get_db)):
+    return delete_user(user_id, conn)
 
 
 # Location endpoints
@@ -123,6 +128,9 @@ def update_location_ep(location_id: UUID, data: LocationUpdate, conn=Depends(get
 def delete_location_ep(location_id: UUID, conn=Depends(get_db)):
     return delete_location(location_id, conn)
 
+@app.patch("/api/v1/locations/{location_id}/found", tags=["locations"])
+def mark_location_as_found(location_id: UUID, user_id: UUID, conn=Depends(get_db)):
+    return mark_location_found(location_id, user_id, conn)
 
 if __name__ == "__main__":
     import uvicorn

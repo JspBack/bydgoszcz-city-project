@@ -22,8 +22,8 @@ def create_location(loc: LocationCreate, conn: Connection, user_id: Optional[UUI
                 status_code=status.HTTP_201_CREATED,
                 content={
                     "message": "Location successfully created",
-                    "location_id": str(new_location[0]),
-                    "location_name": new_location[1]
+                    "location_id": str(new_location[0]), # type: ignore
+                    "location_name": new_location[1] # type: ignore
                 }
             )
 
@@ -277,5 +277,30 @@ def get_nearby_locations(latitude: float, longitude: float, radius_km: float, co
                 content={"locations": locations, "count": len(locations)}
             )
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+
+def mark_location_found(location_id: UUID, user_id: UUID, conn: Connection):
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id FROM locations WHERE id = %s",
+                (location_id,)
+            )
+            if cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Location not found")
+
+            cur.execute(
+                """UPDATE users SET found_locs = array_append(found_locs, %s) WHERE id = %s""",
+                (location_id, user_id)
+            )
+
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={"message": f"User {user_id} marked location {location_id} as found"}
+            )
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")

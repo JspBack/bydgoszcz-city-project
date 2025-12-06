@@ -1,10 +1,10 @@
+from uuid import UUID
 from psycopg import Connection
-from models.user import UpdateUser
 from fastapi import  HTTPException, status
 from fastapi.responses import JSONResponse
 from models.user import UserType
 
-def get_user(id:str, conn:Connection):
+def get_user(id: UUID, conn:Connection):
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -29,10 +29,7 @@ def get_user(id:str, conn:Connection):
     except Exception as e:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-def update_user(id:str, data:UpdateUser, conn:Connection):
-    return
-
-def delete_user(id:str, conn:Connection):
+def delete_user(id: UUID, conn:Connection):
     try:
         with conn.cursor() as cur:
             cur.execute(
