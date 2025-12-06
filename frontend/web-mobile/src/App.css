@@ -41,3 +41,7 @@
 .read-the-docs {
   color: #888;
 }
+
+.leaflet-marker-icon.custom-marker.marker-unvisited-gray {
+    filter: grayscale(100%) brightness(70%);
+}

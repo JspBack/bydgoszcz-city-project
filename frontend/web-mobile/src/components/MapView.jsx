@@ -1,16 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-// Wymagane jest również zaimportowanie stylów Leaflet
 import 'leaflet/dist/leaflet.css';
 
-// Fix dla ikon, które mogą nie ładować się poprawnie w bundlerach
+// Fix dla ikon, które mogą nie ładować się poprawnie
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 // Ustawienie domyślnych ikon dla Leaflet
-// to jest kluczowe, aby markery się poprawnie wyświetlały!
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
@@ -19,33 +17,58 @@ L.Icon.Default.mergeOptions({
 });
 
 
+
+    // Współrzędne początkowego widoku
+    const position = [53.1235, 18.0084];
+    const initialPlaces = [
+        { id: 1, name: 'Spichrze nad Brdą', coords: [53.1221, 18.0019] },
+        { id: 2, name: 'Pomnik Łuczniczki', coords: [53.1232, 17.9904] },
+        { id: 3, name: 'Wyspa Młyńska', coords: [53.1256, 17.9961] },
+        { id: 4, name: 'Opera Nova', coords: [53.1245, 18.0063] },
+];
+
+   const grayIcon = L.icon({
+    iconUrl: markerIcon, 
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    className: 'custom-marker marker-unvisited-gray' 
+});
+
+
 const MapView = () => {
-    // Współrzędne początkowego widoku (np. Kraków)
-    const position = [50.0647, 19.9450]; // Wawel, Kraków
-
-    // Musisz ustalić wysokość dla kontenera mapy.
-    // Użyję inline style, ale lepiej to zrobić w pliku component.css
-    const mapStyle = { height: '500px', width: '100%' };
-
+    
+    // Użyjemy stylu w komponencie do ustalenia wysokości mapy
     return (
-        <div style={mapStyle}>
-            {/* MapContainer to główny komponent mapy */}
-            <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-                {/* TileLayer to warstwa kafelków, czyli wygląd mapy */}
+        <div style={{ height: '70vh', width: '100%' }}>
+            {/* Ustawiamy centrum na Bydgoszcz i zoom na 14 */}
+            <MapContainer 
+                center={position} 
+                zoom={14} 
+                scrollWheelZoom={false} 
+                style={{ height: '100%', width: '100%' }}
+            >
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 
-                {/* Marker to znacznik na mapie */}
-                <Marker position={position}>
-                    <Popup>
-                        A simple Marker at starting point. <br /> Leaflet React app.
-                    </Popup>
-                </Marker>
+                {/* Mapujemy listę miejsc, tworząc markery */}
+                {initialPlaces.map(place => (
+                    <Marker 
+                        key={place.id} 
+                        position={place.coords} 
+                        icon={grayIcon} // <= UŻYWAMY SZAREJ IKONY
+                    >
+                        <Popup>
+                            <h3>{place.name}</h3>
+                            <p style={{ color: 'gray' }}>Miejsce do odwiedzenia.</p>
+                        </Popup>
+                    </Marker>
+                ))}
             </MapContainer>
         </div>
     );
 };
-
 export default MapView;

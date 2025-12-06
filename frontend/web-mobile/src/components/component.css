@@ -53,3 +53,7 @@
   align-items: center;
   justify-content: center;
 }
+.leaflet-marker-icon.custom-marker.marker-unvisited-gray {
+    /* Filtr zmieniający kolor na szary (grayscale) i zmniejszający jasność (brightness) */
+    filter: grayscale(100%) brightness(70%);
+}
