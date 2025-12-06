@@ -25,7 +25,7 @@ from modules.user import delete_user, get_user
 from psycopg import connect
 from utils.db import get_db
 
-load_dotenv(".env")
+load_dotenv()
 
 PORT = int(os.getenv("PORT", 8000))
 
@@ -60,7 +60,7 @@ async def lifespan(app: FastAPI):
                         latitude DOUBLE PRECISION NOT NULL,
                         longitude DOUBLE PRECISION NOT NULL,
                         is_secret BOOLEAN DEFAULT FALSE,
-                        category VARCHAR(100) DEFAULT 'general',
+                        category VARCHAR(100) DEFAULT 'general'
                     );
                 """)
                 logger.info("Database initialized: 'locations' table checked.")

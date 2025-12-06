@@ -1,16 +1,18 @@
-FROM python:slim AS deps
+FROM python:3.11-alpine AS deps
 
 WORKDIR /app
 
-COPY requirements.txt ./
+COPY requirements.txt .
 
-RUN pip3 install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-FROM alpine:2.7 AS runner
+FROM deps AS runtime
 
-COPY --from=deps /app ./app
+COPY . .
 
 RUN apk add --no-cache tini
 
+EXPOSE 8000
+
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["python", "./app/app.py"]
+CMD ["python", "app.py"]
