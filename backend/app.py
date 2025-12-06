@@ -48,9 +48,7 @@ async def lifespan(app: FastAPI):
                         long_description TEXT,
                         latitude DOUBLE PRECISION NOT NULL,
                         longitude DOUBLE PRECISION NOT NULL,
-                        is_secret BOOLEAN DEFAULT FALSE,
-                        created_by UUID REFERENCES users(id),
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        is_secret BOOLEAN DEFAULT FALSE
                     );
                 """)
                 logger.info("Database initialized: 'locations' table checked.")
