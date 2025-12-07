@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import jsQR from 'jsqr';
 
 // Fix dla ikon, które mogą nie ładować się poprawnie
 import L from 'leaflet';
@@ -40,32 +41,94 @@ L.Icon.Default.mergeOptions({
     className: 'custom-marker marker-unvisited-gray' 
 });
 
+const decodeQRCode = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        const img = new Image();
+        
+        reader.onload = (e) => {
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = img.width;
+                canvas.height = img.height;
+                
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                
+                const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    resolve(code.data); // Zwracamy treść (ID) kodu QR
+                } else {
+                    reject(new Error("Nie znaleziono kodu QR na obrazie."));
+                }
+            };
+            img.src = e.target.result; // Wczytanie obrazu
+        };
+        
+        reader.onerror = reject;
+        reader.readAsDataURL(file); // Wczytanie pliku jako URL
+    });
+};
+
 
 
 const MapView = () => {
-    
-const handleOpenCamera = async (placeName) => {
-    console.log(`Try opening camera for place: ${placeName}`);
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-        });
-        console.log('Camera approved');
-        alert(`Aparat włączony!`)
-        } catch (error) {
-            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                alert('Odrzucono zgodę na użycie aparatu.');
+ 
+const uploadQrIdToBackend = async (qrId, placeId) => {
+        const data = {
+            qrCodeId: qrId, // Zeskanowane ID
+            placeId: placeId,
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            const response = await fetch('TWOJ_ENDPOINT_API/verify-qr', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                alert(`Weryfikacja pomyślna! ID: ${qrId}. Odpowiedź backendu: ${result.message}`);
             } else {
-                console.error('Błąd w dostępie do aparatu:', error);
-                alert('Wystąpił problem z dostępem do aparatu. Spróbuj ponownie.');
+                alert(`Błąd weryfikacji: ${response.statusText}. Sprawdź, czy ID jest poprawne.`);
             }
-    } 
-};
+
+        } catch (error) {
+            alert('Błąd sieci podczas wysyłania weryfikacji.');
+        }
+    };
+
+const handlePhotoTaken = async (event, placeId) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+            const qrId = await decodeQRCode(file);
+            
+            if (qrId) {
+                await uploadQrIdToBackend(qrId, placeId); 
+            } else {
+                alert("Błąd: Kod QR nie został znaleziony na zdjęciu. Spróbuj ponownie.");
+            }
+        } catch (error) {
+            console.error('Błąd skanowania/sieci:', error);
+            alert(`Wystąpił błąd podczas skanowania: ${error.message}`);
+        }
+        
+        // Ważne w React: Resetujemy input, aby móc zrobić kolejne zdjęcie na tym samym markerze
+        event.target.value = null; 
+    };
+
     // Użyjemy stylu w komponencie do ustalenia wysokości mapy
     return (
         <div style={{ height: '70vh', width: '100%' }}>
-            {/* Ustawiamy centrum na Bydgoszcz i zoom na 14 */}
             <MapContainer 
                 center={position} 
                 zoom={14} 
@@ -77,7 +140,6 @@ const handleOpenCamera = async (placeName) => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 
-                {/* Mapujemy listę miejsc, tworząc markery */}
                 {initialPlaces.map(place => (
                     <Marker 
                         key={place.id} 
@@ -96,7 +158,6 @@ const handleOpenCamera = async (placeName) => {
                                     borderRadius: '5px', 
                                     cursor: 'pointer',
                                     marginTop: '10px',
-                                    display: 'inline-block' // Umożliwia stylowanie jako blok
                                 }}
                                 >Zrób zdjęcie</label>
                                 <input
@@ -107,8 +168,7 @@ const handleOpenCamera = async (placeName) => {
                                 style = {{ display: 'none' }}
 
                                 onChange={(event) => {
-                                    console.log('Zdjecie zrobione');
-                                    const file = event.target.files[0];
+                                    handlePhotoTaken(event, place.id);
                                 }}
                                 ></input>
                         </Popup>
@@ -117,6 +177,5 @@ const handleOpenCamera = async (placeName) => {
             </MapContainer>
         </div>
     );
-};
-
+}
 export default MapView;

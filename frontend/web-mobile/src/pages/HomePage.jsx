@@ -37,7 +37,6 @@ return (
                 totalEasterEggs={TOTAL_EASTER_EGGS}
             />
             <main>
-                {/* Opcjonalnie: Tutaj MapView mogłoby używać stanu discoveredPins */}
                 <MapView />
             </main>
         </div>

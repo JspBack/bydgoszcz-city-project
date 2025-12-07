@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProgressBar from './ProgressBar.jsx'; // Importujemy pasek postępu
 import logo from '../assets/logo.png';
 const headerStyle = {
@@ -10,6 +11,19 @@ const headerStyle = {
     top: 0,
     zIndex: 1000,
     overflow: 'visible',
+};
+const rightIconsContainer = {
+    display: 'flex',
+    alignItems: 'center',
+};
+const iconStyle = {
+    color: 'white',
+    cursor: 'pointer',
+    padding: '5px',
+    userSelect: 'none',
+    fontSize: '24px',
+    marginLeft: '10px',
+    marginRight: '-5px',
 };
 
 const navBarStyle = {
@@ -44,9 +58,14 @@ const Header = ({
     discoveredEasterEggs, 
     totalEasterEggs 
 }) => {
+    const navigate = useNavigate();
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
+    }
+    const goToLogin = () => {
+        navigate('/login');
     }
 const NAVIGATION_HEIGHT = '150px';
 const menuOverlayStyle = (isMenuOpen) => ({
@@ -69,13 +88,6 @@ const menuOverlayStyle = (isMenuOpen) => ({
     overflowY: 'auto',
     height: '100%',
 };
-    const infoTextStyle = {
-        textAlign: 'center',
-        fontSize: '1.2em',
-        fontWeight: 'bold',
-        marginBottom: '20px',
-        color: '#333',
-    };
 
 return (
 <header style={headerStyle}>
@@ -123,10 +135,16 @@ return (
                 total={totalEasterEggs}        
                 barColor="#9C27B0" 
             />
+                    <button
+                        onClick={goToLogin}
+                        style={iconStyle}
+                    >
+                        Logowanie
+                    </button>
            <div style={menuOverlayStyle(isMenuOpen)}>
                 <div style={menuContentStyle}>
                     <div style={{fontWeight: 'bold', fontSize: '1.2em', marginBottom: '15px', color: 'black'}}>Przeglądaj miejsca</div>
-                    
+
                     {ALL_PLACES.map((place, index) => (
                         <div key={index} style={{
                             padding: '10px 0',
@@ -137,7 +155,9 @@ return (
                             {place}
                         </div>
                     ))}
-                    
+                    <div style={rightIconsContainer}>
+
+                    </div>
                     <button 
                         onClick={toggleMenu} 
                         style={{ marginTop: '20px', padding: '10px', width: '100%' }}

@@ -17,3 +17,11 @@ Popup o hidden place
 Dodatki:
 Ścieżki
 Dark mode/ light mode
+
+#TODO
+Przesyłanie ID ze skanowania kodów QR - on hold
+Podpiąć logowanie i rejestracje - Wika
+Zmienic punkty na dynamic
+popupy jak zdazymy
+
+
