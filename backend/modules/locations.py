@@ -9,7 +9,7 @@ from psycopg import Connection
 
 
 def create_location(
-    loc: LocationCreate, conn: Connection, user_id: Optional[UUID] = None
+    loc: LocationCreate, conn: Connection
 ):
     try:
         with conn.cursor() as cur:

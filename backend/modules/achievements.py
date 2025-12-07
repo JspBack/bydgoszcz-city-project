@@ -1,15 +1,15 @@
 from uuid import UUID
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from psycopg import Connection
 
 
 # Define achievement thresholds for location-based achievements
 LOCATION_ACHIEVEMENTS = [
-    {"name": "First Steps", "description": "Found your first location!", "threshold": 1},
-    {"name": "Explorer", "description": "Found 5 locations!", "threshold": 5},
-    {"name": "Adventurer", "description": "Found 10 locations!", "threshold": 10},
-    {"name": "Pathfinder", "description": "Found 25 locations!", "threshold": 25},
-    {"name": "City Master", "description": "Found 50 locations!", "threshold": 50},
+    {"name": "Pierwsze kroki", "description": "Found your first location!", "threshold": 1},
+    {"name": "Odkrywca", "description": "Odnalazłeś 5 miejsc!", "threshold": 5},
+    {"name": "Poszukiwacz przygód", "description": " 10 miejsc!", "threshold": 10},
+    {"name": "Badacz", "description": "Odnaleziono 25 miejsc!", "threshold": 25},
+    {"name": "Bydgoski mistrz", "description": "Odnalaziono wszystkie miejsca!", "threshold": -1},
 ]
 
 
@@ -70,15 +70,10 @@ def check_and_unlock_achievements(user_id: UUID, conn: Connection) -> List[Dict[
 
 
 def get_user_achievements(user_id: UUID, conn: Connection) -> Dict[str, Any]:
-    """
-    Get all achievements with their unlock status for a user.
-    """
     with conn.cursor() as cur:
-        # Get all achievements
         cur.execute("SELECT id, name, description, threshold FROM achievements ORDER BY threshold")
         all_achievements = cur.fetchall()
 
-        # Get user's unlocked achievements
         cur.execute(
             """
             SELECT achievement_id, unlocked_at FROM user_achievements
@@ -119,10 +114,6 @@ def get_user_achievements(user_id: UUID, conn: Connection) -> Dict[str, Any]:
 
 
 def seed_achievements(conn: Connection) -> None:
-    """
-    Seed the achievements table with predefined achievements.
-    Called during app startup.
-    """
     with conn.cursor() as cur:
         for achievement in LOCATION_ACHIEVEMENTS:
             cur.execute(
