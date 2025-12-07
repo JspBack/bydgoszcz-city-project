@@ -6,9 +6,10 @@ from uuid import UUID
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-
-from models.auth import AuthRegister, AuthLogin
+from models.auth import AuthLogin, AuthRegister
 from models.locations import LocationCreate, LocationUpdate
+from modules.achievements import get_user_achievements, seed_achievements
+from modules.admin import create_default_admin
 from modules.auth import login, register
 from modules.locations import (
     create_location,
@@ -20,9 +21,8 @@ from modules.locations import (
     search_locations,
     update_location,
 )
-from modules.achievements import get_user_achievements, seed_achievements
 from modules.progress import progress_check
-from modules.qr import scan, generate_qr_for_location
+from modules.qr import generate_qr_for_location, scan
 from modules.user import delete_user, get_user
 from psycopg import connect
 from utils.db import get_db
@@ -52,6 +52,9 @@ async def lifespan(app: FastAPI):
                     );
                 """)
                 logger.info("Database initialized: 'users' table checked.")
+
+                create_default_admin(conn)
+                logger.info("Default admin user ensured.")
 
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS locations (
@@ -104,7 +107,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"], 
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -123,6 +126,7 @@ def register_ep(data: AuthRegister, conn=Depends(get_db)):
 @app.post("/api/v1/scan", tags=["qr"])
 def scan_qr(hashed_id: str, user_id: UUID, conn=Depends(get_db)):
     return scan(hashed_id, user_id, conn)
+
 
 @app.get("/api/v1/gen", tags=["qr"])
 def generate_qr(id: UUID):
@@ -201,11 +205,11 @@ def delete_location_ep(location_id: UUID, conn=Depends(get_db)):
 def mark_location_as_found(location_id: UUID, user_id: UUID, conn=Depends(get_db)):
     return mark_location_found(location_id, user_id, conn)
 
+
 # Achievement endpoints
 @app.get("/api/v1/achievements/{user_id}", tags=["achievements"])
 def get_achievements_ep(user_id: UUID, conn=Depends(get_db)):
     return get_user_achievements(user_id, conn)
-
 
 
 if __name__ == "__main__":
