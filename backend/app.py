@@ -60,7 +60,8 @@ async def lifespan(app: FastAPI):
                         latitude DOUBLE PRECISION NOT NULL,
                         longitude DOUBLE PRECISION NOT NULL,
                         is_secret BOOLEAN DEFAULT FALSE,
-                        category VARCHAR(100) DEFAULT 'general'
+                        category VARCHAR(100) DEFAULT 'general',
+                        zone VARCHAR(100)
                     );
                 """)
                 logger.info("Database initialized: 'locations' table checked.")

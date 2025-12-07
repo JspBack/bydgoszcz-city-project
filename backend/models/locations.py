@@ -13,6 +13,7 @@ class LocationCreate(BaseModel):
     longitude: float
     is_secret: bool = False
     category: str = "general"
+    zone: str = "Bydgoszcz"
 
 
 class LocationUpdate(BaseModel):
@@ -23,6 +24,7 @@ class LocationUpdate(BaseModel):
     longitude: Optional[float] = None
     is_secret: Optional[bool] = None
     category: Optional[str] = None
+    zone: Optional[str] = None
 
 
 class Location(BaseModel):
@@ -35,3 +37,4 @@ class Location(BaseModel):
     longitude: float
     is_secret: bool
     category: str
+    zone: str
