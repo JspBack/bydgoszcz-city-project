@@ -14,8 +14,8 @@ def create_location(
     try:
         with conn.cursor() as cur:
             cur.execute(
-                """INSERT INTO locations (name, description, long_description, latitude, longitude, is_secret, category, zone)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """INSERT INTO locations (name, description, long_description, latitude, longitude, is_secret, category, zone, address)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, name""",
                 (
                     loc.name,
@@ -26,6 +26,7 @@ def create_location(
                     loc.is_secret,
                     loc.category,
                     loc.zone,
+                    loc.address,
                 ),
             )
             new_location = cur.fetchone()
@@ -35,7 +36,7 @@ def create_location(
             content={
                 "message": "Location successfully created",
                 "location_id": str(new_location[0]),
-                "location_name": new_location[1],
+                "location_name": new_location[1]
             },
         )
 
@@ -50,7 +51,7 @@ def get_all_locations(
         with conn.cursor() as cur:
             if include_secret:
                 cur.execute(
-                    """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category, zone
+                    """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category, zone, address
                     FROM locations
                     ORDER BY upload_date DESC
                     LIMIT %s OFFSET %s""",
@@ -58,7 +59,7 @@ def get_all_locations(
                 )
             else:
                 cur.execute(
-                    """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category, zone
+                    """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category, zone, address
                     FROM locations
                     WHERE is_secret = FALSE
                     ORDER BY upload_date DESC
@@ -75,11 +76,11 @@ def get_all_locations(
                     "upload_date": row[2].isoformat() if row[2] else None,
                     "description": row[3],
                     "long_description": row[4],
-                    "latitude": row[5],
-                    "longitude": row[6],
+                    "coords": [row[5], row[6]],
                     "is_secret": row[7],
                     "category": row[8],
                     "zone": row[9],
+                    "address": row[10],
                 }
                 for row in rows
             ]
@@ -97,7 +98,7 @@ def get_location_by_id(location_id: UUID, conn: Connection):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category, zone
+                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category, zone, address
                 FROM locations
                 WHERE id = %s""",
                 (location_id,),
@@ -113,11 +114,11 @@ def get_location_by_id(location_id: UUID, conn: Connection):
                 "upload_date": row[2].isoformat() if row[2] else None,
                 "description": row[3],
                 "long_description": row[4],
-                "latitude": row[5],
-                "longitude": row[6],
+                "coords": [row[5], row[6]],
                 "is_secret": row[7],
                 "category": row[8],
                 "zone": row[9],
+                "address": row[10],
             }
 
             return JSONResponse(status_code=status.HTTP_200_OK, content=location)
@@ -157,6 +158,9 @@ def update_location(location_id: UUID, loc: LocationUpdate, conn: Connection):
         if loc.zone is not None:
             update_fields.append("zone = %s")
             values.append(loc.zone)
+        if loc.address is not None:
+            update_fields.append("address = %s")
+            values.append(loc.address)
 
         if not update_fields:
             raise HTTPException(status_code=400, detail="No fields to update")
@@ -222,7 +226,7 @@ def search_locations(query: str, conn: Connection, limit: int = 50):
         with conn.cursor() as cur:
             search_pattern = f"%{query}%"
             cur.execute(
-                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category, zone
+                """SELECT id, name, upload_date, description, long_description, latitude, longitude, is_secret, category, zone, address
                 FROM locations
                 WHERE (name ILIKE %s OR description ILIKE %s OR long_description ILIKE %s)
                 AND is_secret = FALSE
@@ -240,11 +244,11 @@ def search_locations(query: str, conn: Connection, limit: int = 50):
                     "upload_date": row[2].isoformat() if row[2] else None,
                     "description": row[3],
                     "long_description": row[4],
-                    "latitude": row[5],
-                    "longitude": row[6],
+                    "coords": [row[5], row[6]],
                     "is_secret": row[7],
                     "category": row[8],
                     "zone": row[9],
+                    "address": row[10],
                 }
                 for row in rows
             ]
@@ -292,8 +296,7 @@ def get_nearby_locations(
                     "upload_date": row[2].isoformat() if row[2] else None,
                     "description": row[3],
                     "long_description": row[4],
-                    "latitude": row[5],
-                    "longitude": row[6],
+                    "coords": [row[5], row[6]],
                     "is_secret": row[7],
                     "category": row[8],
                     "zone": row[9],

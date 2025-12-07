@@ -14,6 +14,7 @@ class LocationCreate(BaseModel):
     is_secret: bool = False
     category: str = "general"
     zone: str = "Bydgoszcz"
+    address: str = ""
 
 
 class LocationUpdate(BaseModel):
@@ -25,6 +26,7 @@ class LocationUpdate(BaseModel):
     is_secret: Optional[bool] = None
     category: Optional[str] = None
     zone: Optional[str] = None
+    address: Optional[str] = None
 
 
 class Location(BaseModel):
@@ -38,3 +40,4 @@ class Location(BaseModel):
     is_secret: bool
     category: str
     zone: str
+    address: str

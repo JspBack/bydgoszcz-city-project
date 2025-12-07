@@ -120,10 +120,12 @@ const MapView = () => {
     const fetchLocations = async () => {
       try {
         const api = get_api_client();
-        const response = await api.get("/locations");
+        const response = await api.get("/locations?limit=100");
+
+        console.log("API Response Data:", response.data);
 
         if (response.status === 200) {
-          setLocations(response.data);
+          setLocations(response.data.locations);
         }
       } catch (error) {
         console.error("Błąd pobierania lokalizacji:", error);
@@ -198,7 +200,7 @@ const MapView = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {locations?.map((place) => (
+        {locations.map((place) => (
           <Marker key={place.id} position={place.coords} icon={grayIcon}>
             <Popup>
               <h3>{place.name}</h3>
