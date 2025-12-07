@@ -26,7 +26,6 @@ RUN apk add --no-cache tini
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-# COPY --from=deps /app/node_modules ./node_modules
 
 EXPOSE 80
 
