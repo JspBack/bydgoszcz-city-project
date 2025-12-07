@@ -30,7 +30,7 @@ const LoginPage = () => {
         if (user_id) {
           localStorage.setItem("user_id", user_id);
 
-          navigate("/");
+          navigate("/home");
         } else {
           setErrorMessage("API response missing user_id");
         }
