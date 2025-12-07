@@ -1,5 +1,7 @@
 # bydgoszc-city-project
 
+- This project primarily built for mobile devices.
+
 **Environment files**
 
 - There's an `example.env` in the repo root. Copy or rename it to `.env` when running services locally or when using Docker Compose.
@@ -14,7 +16,7 @@ Backend
 cd backend
 ```
 
-2. (Optional but recommended) create and activate a virtual environment, then install dependencies:
+2. (Optional) create and activate a virtual environment, then install dependencies:
 
 ```bash
 python3 -m venv venv
@@ -44,11 +46,11 @@ npm install
 npm run dev
 ```
 
-Open the frontend URL shown by the dev server (usually `http://localhost:5173` for Vite-based projects).
+Open the frontend URL shown by the dev server (`http://localhost:5173`).
 
 **Quick start — Docker Compose**
 
-If you prefer Docker, the repository includes a `docker-compose.yaml` at the project root. From the repo root run:
+For Docker, the repository includes a `docker-compose.yaml` at the project root. From the repo root run:
 
 ```bash
 cp example.env .env
