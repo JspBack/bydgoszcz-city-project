@@ -6,6 +6,7 @@ import {
   Popup,
   CircleMarker,
 } from "react-leaflet";
+import AddLocationModal from "./AddLocationModal";
 import { get_api_client } from "../utils/axios";
 import "leaflet/dist/leaflet.css";
 import jsQR from "jsqr";
@@ -114,6 +115,8 @@ const decodeQRCode = (file) => {
 
 const MapView = () => {
   const [locations, setLocations] = useState(initialPlaces);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [clickedCoords, setClickedCoords] = useState(null);
 
   const [position, setPosition] = useState(default_pos);
 
@@ -147,20 +150,21 @@ const MapView = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const api = get_api_client();
-        const response = await api.get("/locations?limit=100");
-        console.log("API Response Data:", response.data);
+  const fetchLocations = async () => {
+    try {
+      const api = get_api_client();
+      const response = await api.get("/locations?limit=100");
+      console.log("API Response Data:", response.data);
 
-        if (response.status === 200) {
-          // setLocations(response.data.locations);
-        }
-      } catch (error) {
-        console.error("Błąd pobierania lokalizacji:", error);
+      if (response.status === 200) {
+        setLocations(response.data.locations);
       }
-    };
+    } catch (error) {
+      console.error("Błąd pobierania lokalizacji:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchLocations();
   }, []);
 
@@ -216,8 +220,15 @@ const MapView = () => {
       <MapContainer
         center={position}
         zoom={14}
+        whenCreated={(map) => {}}
         scrollWheelZoom={false}
         style={{ height: "100%", width: "100%" }}
+        onClick={(e) => {
+          const { lat, lng } = e.latlng;
+          if (isAddModalOpen) {
+            setClickedCoords([lat, lng]);
+          }
+        }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -269,7 +280,55 @@ const MapView = () => {
             </Popup>
           </Marker>
         ))}
+
+        {clickedCoords && isAddModalOpen && (
+          <Marker position={clickedCoords}>
+            <Popup>Wybrane współrzędne</Popup>
+          </Marker>
+        )}
       </MapContainer>
+
+      <button
+        onClick={() => {
+          setClickedCoords(null);
+          setIsAddModalOpen(true);
+        }}
+        aria-label="Dodaj lokalizację"
+        title="Dodaj lokalizację"
+        style={{
+          position: "fixed",
+          left: 20,
+          bottom: 20,
+          zIndex: 1000,
+          width: 48,
+          height: 48,
+          padding: 0,
+          borderRadius: 24,
+          background: "#007bff",
+          color: "white",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          fontSize: 22,
+          lineHeight: "22px",
+        }}
+      >
+        <span style={{ transform: "translateY(-1px)" }}>✚</span>
+      </button>
+
+      <AddLocationModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        initialCoords={clickedCoords || position}
+        onSuccess={() => {
+          setIsAddModalOpen(false);
+          setClickedCoords(null);
+          fetchLocations();
+        }}
+      />
     </div>
   );
 };
