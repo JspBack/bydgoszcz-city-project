@@ -1,4 +1,4 @@
-@import 'leaflet/dist/leaflet.css';
+@import "leaflet/dist/leaflet.css";
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -43,5 +43,9 @@
 }
 
 .leaflet-marker-icon.custom-marker.marker-unvisited-gray {
-    filter: grayscale(100%) brightness(70%);
+  filter: grayscale(100%) brightness(70%);
+}
+
+.leaflet-marker-icon.custom-marker.marker-found-orange {
+  filter: hue-rotate(180deg) saturate(2) brightness(1);
 }

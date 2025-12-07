@@ -1,4 +1,3 @@
-
 .topbar {
   display: flex;
   align-items: center;
@@ -19,7 +18,6 @@
 .topbar-title {
   font-size: 20px;
 }
-
 
 .progress-wrapper {
   margin-bottom: 12px;
@@ -43,8 +41,6 @@
   transition: width 0.3s ease;
 }
 
-
-
 .map-view {
   width: 100%;
   height: 100%;
@@ -54,6 +50,6 @@
   justify-content: center;
 }
 .leaflet-marker-icon.custom-marker.marker-unvisited-gray {
-    /* Filtr zmieniający kolor na szary (grayscale) i zmniejszający jasność (brightness) */
-    filter: grayscale(100%) brightness(70%);
+  /* Filtr zmieniający kolor na szary (grayscale) i zmniejszający jasność (brightness) */
+  filter: grayscale(100%) brightness(70%);
 }

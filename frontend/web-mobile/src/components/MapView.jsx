@@ -85,6 +85,15 @@ const grayIcon = L.icon({
   className: "custom-marker marker-unvisited-gray",
 });
 
+const greenIcon = L.icon({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  className: "custom-marker marker-found-orange",
+});
+
 const decodeQRCode = (file) => {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -147,6 +156,7 @@ const MapView = () => {
   const [locations, setLocations] = useState(initialPlaces);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [clickedCoords, setClickedCoords] = useState(null);
+  const [foundLocationIds, setFoundLocationIds] = useState([]);
 
   const [position, setPosition] = useState(default_pos);
 
@@ -196,6 +206,23 @@ const MapView = () => {
 
   useEffect(() => {
     fetchLocations();
+    const fetchFound = async () => {
+      try {
+        const userId = localStorage.getItem("user_id");
+        if (!userId) return;
+        const api = get_api_client();
+        const response = await api.get("/progress", {
+          params: { user_id: userId },
+        });
+        if (response.status === 200) {
+          setFoundLocationIds(response.data?.found_locations || []);
+        }
+      } catch (error) {
+        console.error("Błąd pobierania postępu użytkownika:", error);
+      }
+    };
+
+    fetchFound();
   }, []);
 
   const uploadQrIdToBackend = async (qrId) => {
@@ -278,38 +305,45 @@ const MapView = () => {
           <Popup>Tu jesteś!</Popup>
         </CircleMarker>
 
-        {locations.map((place) => (
-          <Marker key={place.id} position={place.coords} icon={grayIcon}>
-            <Popup>
-              <h3>{place.name}</h3>
-              <p>{place.address}</p>
-              <label
-                htmlFor={`camera-input-${place.id}`}
-                style={{
-                  backgroundColor: "#111",
-                  color: "white",
-                  padding: "10px 15px",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  marginTop: "10px",
-                }}
-              >
-                Zrób zdjęcie
-              </label>
-              <input
-                id={`camera-input-${place.id}`}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                style={{ display: "none" }}
-                onChange={(event) => {
-                  handlePhotoTaken(event, place.id);
-                }}
-              ></input>
-            </Popup>
-          </Marker>
-        ))}
+        {locations.map((place) => {
+          const isFound = foundLocationIds.includes(String(place.id));
+          return (
+            <Marker
+              key={place.id}
+              position={place.coords}
+              icon={isFound ? greenIcon : grayIcon}
+            >
+              <Popup>
+                <h3>{place.name}</h3>
+                <p>{place.address}</p>
+                <label
+                  htmlFor={`camera-input-${place.id}`}
+                  style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "10px 15px",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    marginTop: "10px",
+                  }}
+                >
+                  Zrób zdjęcie
+                </label>
+                <input
+                  id={`camera-input-${place.id}`}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  style={{ display: "none" }}
+                  onChange={(event) => {
+                    handlePhotoTaken(event, place.id);
+                  }}
+                ></input>
+              </Popup>
+            </Marker>
+          );
+        })}
 
         {clickedCoords && isAddModalOpen && (
           <Marker position={clickedCoords}>
