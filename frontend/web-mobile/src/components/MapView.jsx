@@ -87,29 +87,59 @@ const grayIcon = L.icon({
 
 const decodeQRCode = (file) => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    const url = URL.createObjectURL(file);
     const img = new Image();
 
-    reader.onload = (e) => {
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0, img.width, img.height);
-        const imageData = ctx.getImageData(0, 0, img.width, img.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
 
-        if (code) {
-          resolve(code.data);
-        } else {
-          reject(new Error("Nie znaleziono kodu QR na obrazie."));
+      const maxDimension = 800;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxDimension) {
+          height = Math.round((height *= maxDimension / width));
+          width = maxDimension;
         }
-      };
-      img.src = e.target.result;
+      } else {
+        if (height > maxDimension) {
+          width = Math.round((width *= maxDimension / height));
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const imageData = ctx.getImageData(0, 0, width, height);
+
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert",
+      });
+
+      if (code) {
+        resolve(code.data);
+      } else {
+        reject(
+          new Error(
+            "Nie znaleziono kodu QR. Upewnij się, że zdjęcie jest ostre i dobrze oświetlone."
+          )
+        );
+      }
     };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+
+    img.onerror = (err) => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Błąd ładowania obrazu."));
+    };
+
+    img.src = url;
   });
 };
 
@@ -168,7 +198,7 @@ const MapView = () => {
     fetchLocations();
   }, []);
 
-  const uploadQrIdToBackend = async (qrId, placeId) => {
+  const uploadQrIdToBackend = async (qrId) => {
     const userId = localStorage.getItem("user_id");
 
     if (!userId) {
