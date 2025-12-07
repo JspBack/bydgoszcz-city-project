@@ -29,16 +29,7 @@ def create_location(
                 ),
             )
             new_location = cur.fetchone()
-
-        location_id_str = str(new_location[0])
-
-        try:
-            qr_code = generate_qr_for_location(location_id_str)
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Failed to generate QR code: {e}"
-            )
-
+        
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
             content={
