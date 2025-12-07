@@ -20,6 +20,7 @@ from modules.locations import (
     search_locations,
     update_location,
 )
+from modules.achievements import get_user_achievements, seed_achievements
 from modules.progress import progress_check
 from modules.qr import scan
 from modules.user import delete_user, get_user
@@ -62,10 +63,35 @@ async def lifespan(app: FastAPI):
                         latitude DOUBLE PRECISION NOT NULL,
                         longitude DOUBLE PRECISION NOT NULL,
                         is_secret BOOLEAN DEFAULT FALSE,
-                        category VARCHAR(100) DEFAULT 'general'
+                        category VARCHAR(100),
+                        zone VARCHAR(100) NOT NULL
                     );
                 """)
                 logger.info("Database initialized: 'locations' table checked.")
+
+                cur.execute("""
+                        CREATE TABLE IF NOT EXISTS achievements (
+                            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                            name VARCHAR(255) NOT NULL,
+                            description TEXT,
+                            threshold INT NOT NULL UNIQUE
+                        );
+                    """)
+                logger.info("Database initialized: 'achievements' table checked.")
+
+                cur.execute("""
+                        CREATE TABLE IF NOT EXISTS user_achievements (
+                            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+                            achievement_id UUID REFERENCES achievements(id) ON DELETE CASCADE,
+                            unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            PRIMARY KEY (user_id, achievement_id)
+                        );
+                    """)
+                logger.info("Database initialized: 'user_achievements' table checked.")
+
+            # Seed achievements
+            seed_achievements(conn)
+            logger.info("Achievements seeded.")
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
     yield
@@ -169,6 +195,12 @@ def delete_location_ep(location_id: UUID, conn=Depends(get_db)):
 @app.patch("/api/v1/locations/{location_id}/found", tags=["locations"])
 def mark_location_as_found(location_id: UUID, user_id: UUID, conn=Depends(get_db)):
     return mark_location_found(location_id, user_id, conn)
+
+# Achievement endpoints
+@app.get("/api/v1/achievements/{user_id}", tags=["achievements"])
+def get_achievements_ep(user_id: UUID, conn=Depends(get_db)):
+    return get_user_achievements(user_id, conn)
+
 
 
 if __name__ == "__main__":
