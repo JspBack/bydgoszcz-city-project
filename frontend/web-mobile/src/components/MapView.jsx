@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  CircleMarker,
+} from "react-leaflet";
+import AddLocationModal from "./AddLocationModal";
 import { get_api_client } from "../utils/axios";
 import "leaflet/dist/leaflet.css";
 import jsQR from "jsqr";
 
-// Fix dla ikon, które mogą nie ładować się poprawnie
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-// Ustawienie domyślnych ikon dla Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -18,8 +23,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// Współrzędne początkowego widoku
-const position = [53.1235, 18.0084];
+const default_pos = [53.1235, 18.0084];
+
 const initialPlaces = [
   {
     id: 1,
@@ -89,49 +94,77 @@ const decodeQRCode = (file) => {
       img.onload = () => {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
-
         canvas.width = img.width;
         canvas.height = img.height;
-
         ctx.drawImage(img, 0, 0, img.width, img.height);
-
         const imageData = ctx.getImageData(0, 0, img.width, img.height);
-
         const code = jsQR(imageData.data, imageData.width, imageData.height);
 
         if (code) {
-          resolve(code.data); // Zwracamy treść (ID) kodu QR
+          resolve(code.data);
         } else {
           reject(new Error("Nie znaleziono kodu QR na obrazie."));
         }
       };
-      img.src = e.target.result; // Wczytanie obrazu
+      img.src = e.target.result;
     };
-
     reader.onerror = reject;
-    reader.readAsDataURL(file); // Wczytanie pliku jako URL
+    reader.readAsDataURL(file);
   });
 };
 
 const MapView = () => {
-  const [locations, setLocations] = useState([]);
+  const [locations, setLocations] = useState(initialPlaces);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [clickedCoords, setClickedCoords] = useState(null);
+
+  const [position, setPosition] = useState(default_pos);
 
   useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const api = get_api_client();
-        const response = await api.get("/locations?limit=100");
+    if (!("geolocation" in navigator)) {
+      console.error("Geolocation is not supported by this browser.");
+      return;
+    }
 
-        console.log("API Response Data:", response.data);
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const newPos = [latitude, longitude];
 
-        if (response.status === 200) {
-          setLocations(response.data.locations);
-        }
-      } catch (error) {
-        console.error("Błąd pobierania lokalizacji:", error);
+        console.log("Updated User Position:", newPos);
+
+        setPosition(newPos);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
       }
-    };
+    );
 
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, []);
+
+  const fetchLocations = async () => {
+    try {
+      const api = get_api_client();
+      const response = await api.get("/locations?limit=100");
+      console.log("API Response Data:", response.data);
+
+      if (response.status === 200) {
+        setLocations((prev) => [...prev, ...(response.data?.locations || [])]);
+      }
+    } catch (error) {
+      console.error("Błąd pobierania lokalizacji:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchLocations();
   }, []);
 
@@ -145,7 +178,6 @@ const MapView = () => {
 
     try {
       const api = get_api_client();
-
       const response = await api.post(
         `/scan?hashed_id=${qrId}&user_id=${userId}`
       );
@@ -169,7 +201,6 @@ const MapView = () => {
     if (!file) return;
     try {
       const qrId = await decodeQRCode(file);
-
       if (qrId) {
         await uploadQrIdToBackend(qrId, placeId);
       } else {
@@ -181,24 +212,41 @@ const MapView = () => {
       console.error("Błąd skanowania/sieci:", error);
       alert(`Wystąpił błąd podczas skanowania: ${error.message}`);
     }
-
-    // Ważne w React: Resetujemy input, aby móc zrobić kolejne zdjęcie na tym samym markerze
     event.target.value = null;
   };
 
-  // Użyjemy stylu w komponencie do ustalenia wysokości mapy
   return (
     <div style={{ height: "70vh", width: "100%" }}>
       <MapContainer
         center={position}
         zoom={14}
+        whenCreated={(map) => {}}
         scrollWheelZoom={false}
         style={{ height: "100%", width: "100%" }}
+        onClick={(e) => {
+          const { lat, lng } = e.latlng;
+          if (isAddModalOpen) {
+            setClickedCoords([lat, lng]);
+          }
+        }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        <CircleMarker
+          center={position}
+          radius={8}
+          pathOptions={{
+            color: "white",
+            fillColor: "#007bff",
+            fillOpacity: 1,
+            weight: 2,
+          }}
+        >
+          <Popup>Tu jesteś!</Popup>
+        </CircleMarker>
 
         {locations.map((place) => (
           <Marker key={place.id} position={place.coords} icon={grayIcon}>
@@ -232,7 +280,55 @@ const MapView = () => {
             </Popup>
           </Marker>
         ))}
+
+        {clickedCoords && isAddModalOpen && (
+          <Marker position={clickedCoords}>
+            <Popup>Wybrane współrzędne</Popup>
+          </Marker>
+        )}
       </MapContainer>
+
+      <button
+        onClick={() => {
+          setClickedCoords(null);
+          setIsAddModalOpen(true);
+        }}
+        aria-label="Dodaj lokalizację"
+        title="Dodaj lokalizację"
+        style={{
+          position: "fixed",
+          left: 20,
+          bottom: 20,
+          zIndex: 1000,
+          width: 48,
+          height: 48,
+          padding: 0,
+          borderRadius: 24,
+          background: "#007bff",
+          color: "white",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          fontSize: 22,
+          lineHeight: "22px",
+        }}
+      >
+        <span style={{ transform: "translateY(-1px)" }}>✚</span>
+      </button>
+
+      <AddLocationModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        initialCoords={clickedCoords || position}
+        onSuccess={() => {
+          setIsAddModalOpen(false);
+          setClickedCoords(null);
+          fetchLocations();
+        }}
+      />
     </div>
   );
 };
