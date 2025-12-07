@@ -1,0 +1,121 @@
+/* ========================================================================= */
+/* GLOBALNE RESETY DLA TEJ STRONY (Zapobieganie Czarnemu Ekranowi) */
+/* ========================================================================= */
+
+/* Ustawienie białego tła na głównej aplikacji, jeśli jest ciemne */
+body, #root {
+    background-color: #f4f4f4; /* Lekkie, jasne tło */
+    color: #000; /* Domyślny kolor tekstu */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+
+/* ========================================================================= */
+/* KONTEKST LOGOWANIA (Login Page) */
+/* ========================================================================= */
+
+.login-container {
+    /* Centralizowanie formularza na ekranie (dla widoku mobilnego) */
+    max-width: 400px;
+    margin: 50px auto; 
+    padding: 25px;
+    background-color: #ffffff; /* Białe tło formularza */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    /* Dodatkowy styl dla mobilności */
+    width: 90%; 
+    box-sizing: border-box; 
+}
+
+.login-header h1 {
+    font-size: 2.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #215E67;
+}
+
+.login-header p {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+/* ========================================================================= */
+/* POLA FORMULARZA */
+/* ========================================================================= */
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+    /* Kontener dla etykiety i linku (Zapomniałeś hasła?) */
+    display: flex;
+    flex-direction: column; 
+    position: relative;
+}
+
+.label-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.form-group label {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #000;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; 
+}
+
+.form-group .forgot-password-link {
+    font-size: 0.8em;
+    color: #3AB4C6;
+    text-decoration: none;
+}
+
+/* ========================================================================= */
+/* PRZYCISKI I LINKI */
+/* ========================================================================= */
+
+.login-button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #fff;
+    background-color: #215E67;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.login-button:hover {
+    background-color: #1a4f57;
+}
+
+.register-text {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #666;
+    text-align: center;
+}
+
+.register-text a {
+    color: #3AB4C6;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 5px;
+}
