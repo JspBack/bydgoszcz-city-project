@@ -157,7 +157,7 @@ const MapView = () => {
       console.log("API Response Data:", response.data);
 
       if (response.status === 200) {
-        setLocations(response.data.locations);
+        setLocations((prev) => [...prev, ...(response.data?.locations || [])]);
       }
     } catch (error) {
       console.error("Błąd pobierania lokalizacji:", error);

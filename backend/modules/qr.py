@@ -62,9 +62,9 @@ def scan(hashed_id: str, user_id: UUID, conn: Connection):
         )
 
 
-def generate_qr_for_location(location_id: str) -> str:
+def generate_qr_for_location(location_id: UUID) -> str:
     try:
-        encrypted_id = encode(location_id)
+        encrypted_id = encode(str(location_id))
 
         qr = qrcode.make(encrypted_id)
         buffer = BytesIO()
