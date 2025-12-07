@@ -3,10 +3,11 @@ import os
 from contextlib import asynccontextmanager
 from uuid import UUID
 
-# Development specific
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Query
-from models.auth import UserAuth
+from fastapi.middleware.cors import CORSMiddleware
+
+from models.auth import AuthRegister, AuthLogin
 from models.locations import LocationCreate, LocationUpdate
 from modules.auth import login, register
 from modules.locations import (
@@ -42,6 +43,7 @@ async def lifespan(app: FastAPI):
                     CREATE TABLE IF NOT EXISTS users (
                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         email VARCHAR(255) UNIQUE NOT NULL,
+                        username VARCHAR(15) UNIQUE NOT NULL,
                         type INT NOT NULL,
                         password_hash VARCHAR(255) NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -71,14 +73,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan, docs_url="/api/v1/docs")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"], 
+    allow_headers=["*"],
+)
+
 
 @app.post("/api/v1/login", tags=["auth"])
-def login_ep(data: UserAuth, conn=Depends(get_db)):
+def login_ep(data: AuthLogin, conn=Depends(get_db)):
     return login(data, conn)
 
 
 @app.post("/api/v1/register", tags=["auth"])
-def register_ep(data: UserAuth, conn=Depends(get_db)):
+def register_ep(data: AuthRegister, conn=Depends(get_db)):
     return register(data, conn)
 
 
