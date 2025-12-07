@@ -22,7 +22,7 @@ from modules.locations import (
 )
 from modules.achievements import get_user_achievements, seed_achievements
 from modules.progress import progress_check
-from modules.qr import scan
+from modules.qr import scan, generate_qr_for_location
 from modules.user import delete_user, get_user
 from psycopg import connect
 from utils.db import get_db
@@ -123,6 +123,10 @@ def register_ep(data: AuthRegister, conn=Depends(get_db)):
 @app.post("/api/v1/scan", tags=["qr"])
 def scan_qr(hashed_id: str, user_id: UUID, conn=Depends(get_db)):
     return scan(hashed_id, user_id, conn)
+
+@app.get("/api/v1/gen", tags=["qr"])
+def generate_qr(id: UUID):
+    return generate_qr_for_location(id)
 
 
 # Progress endpoints

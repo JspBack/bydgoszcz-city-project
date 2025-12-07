@@ -30,7 +30,7 @@ def create_location(
                 ),
             )
             new_location = cur.fetchone()
-        
+
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
             content={
