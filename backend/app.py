@@ -62,6 +62,7 @@ async def lifespan(app: FastAPI):
                         long_description TEXT,
                         latitude DOUBLE PRECISION NOT NULL,
                         longitude DOUBLE PRECISION NOT NULL,
+                        address VARCHAR(255) NOT NULL,
                         is_secret BOOLEAN DEFAULT FALSE,
                         category VARCHAR(100),
                         zone VARCHAR(100) NOT NULL
