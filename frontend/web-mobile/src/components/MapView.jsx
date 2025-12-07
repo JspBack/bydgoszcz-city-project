@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { get_api_client } from "../utils/axios";
 import "leaflet/dist/leaflet.css";
 import jsQR from "jsqr";
 
@@ -113,34 +114,51 @@ const decodeQRCode = (file) => {
 };
 
 const MapView = () => {
-  const uploadQrIdToBackend = async (qrId, placeId) => {
-    const data = {
-      qrCodeId: qrId, // Zeskanowane ID
-      placeId: placeId,
-      timestamp: new Date().toISOString(),
+  const [locations, setLocations] = useState([]);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const api = get_api_client();
+        const response = await api.get("/locations");
+
+        if (response.status === 200) {
+          setLocations(response.data);
+        }
+      } catch (error) {
+        console.error("Błąd pobierania lokalizacji:", error);
+      }
     };
 
-    try {
-      const response = await fetch("TWOJ_ENDPOINT_API/verify-qr", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+    fetchLocations();
+  }, []);
 
-      if (response.ok) {
-        const result = await response.json();
-        alert(
-          `Weryfikacja pomyślna! ID: ${qrId}. Odpowiedź backendu: ${result.message}`
-        );
-      } else {
-        alert(
-          `Błąd weryfikacji: ${response.statusText}. Sprawdź, czy ID jest poprawne.`
-        );
+  const uploadQrIdToBackend = async (qrId, placeId) => {
+    const userId = localStorage.getItem("user_id");
+
+    if (!userId) {
+      alert("Błąd: Brak zalogowanego użytkownika.");
+      return;
+    }
+
+    try {
+      const api = get_api_client();
+
+      const response = await api.post(
+        `/scan?hashed_id=${qrId}&user_id=${userId}`
+      );
+
+      if (response.status === 200) {
+        alert(`Gratulacje! ${response.data.message || "Miejsce odkryte!"}`);
+        window.location.reload();
       }
     } catch (error) {
-      alert("Błąd sieci podczas wysyłania weryfikacji.");
+      console.error("Scan Error:", error);
+      if (error.response && error.response.data) {
+        alert(`Błąd: ${error.response.data.detail}`);
+      } else {
+        alert("Błąd połączenia z serwerem.");
+      }
     }
   };
 
@@ -180,7 +198,7 @@ const MapView = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {initialPlaces.map((place) => (
+        {locations?.map((place) => (
           <Marker key={place.id} position={place.coords} icon={grayIcon}>
             <Popup>
               <h3>{place.name}</h3>
