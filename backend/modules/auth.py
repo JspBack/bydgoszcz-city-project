@@ -15,7 +15,7 @@ def register(user: AuthRegister, conn: Connection):
                 (user.email, hashed_pwd, 1, user.username)
             )
 
-            new_user = cur.fetchone()                    
+            new_user = cur.fetchone()                  
 
             return JSONResponse(
                 status_code=status.HTTP_201_CREATED,
@@ -39,19 +39,15 @@ def login(user: AuthLogin, conn: Connection):
             (user.email,)
         )
         record = cur.fetchone()
-    print("test1")
 
     if not record:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
-    print("test2")
     user_id, email, stored_hash = record
 
     if not verify_password(user.password, stored_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-
-    print("test3")
-
+    
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
