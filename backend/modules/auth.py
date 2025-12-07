@@ -3,16 +3,16 @@ from fastapi.responses import JSONResponse
 from psycopg import errors, Connection
 
 from utils.hash import get_password_hash, verify_password
-from models.auth import UserAuth
+from models.auth import AuthLogin, AuthRegister
 
-def register(user: UserAuth, conn: Connection):
+def register(user: AuthRegister, conn: Connection):
     hashed_pwd = get_password_hash(user.password)
     
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO users (email, password_hash, type) VALUES (%s, %s, %s) RETURNING id, email",
-                (user.email, hashed_pwd, 1)
+                "INSERT INTO users (email, password_hash, type, username) VALUES (%s, %s, %s, %s) RETURNING id, email",
+                (user.email, hashed_pwd, 1, user.username)
             )
 
             new_user = cur.fetchone()                    
@@ -27,26 +27,30 @@ def register(user: UserAuth, conn: Connection):
             )
 
     except errors.UniqueViolation:
-        raise HTTPException(status_code=400, detail="Email already exists")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error: {str(e)}")
 
 
-def login(user: UserAuth, conn: Connection):
+def login(user: AuthLogin, conn: Connection):
     with conn.cursor() as cur:
         cur.execute(
             "SELECT id, email, password_hash FROM users WHERE email = %s", 
             (user.email,)
         )
         record = cur.fetchone()
+    print("test1")
 
     if not record:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
+    print("test2")
     user_id, email, stored_hash = record
 
     if not verify_password(user.password, stored_hash):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    print("test3")
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,
