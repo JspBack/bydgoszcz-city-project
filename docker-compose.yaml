@@ -1,10 +1,10 @@
 services:
-  # frontend:
-  #   container_name: frontend
-  #   build:
-  #     context: ./frontend/web-mobile
-  #   ports:
-  #     - "80:80"
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend/web-mobile
+    ports:
+      - "80:80"
 
   backend:
     container_name: backend
