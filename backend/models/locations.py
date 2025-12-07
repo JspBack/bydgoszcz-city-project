@@ -1,7 +1,9 @@
-from pydantic import BaseModel
 from datetime import date
 from typing import Optional
 from uuid import UUID
+
+from pydantic import BaseModel
+
 
 class LocationCreate(BaseModel):
     name: str
@@ -10,6 +12,8 @@ class LocationCreate(BaseModel):
     latitude: float
     longitude: float
     is_secret: bool = False
+    category: str = "general"
+
 
 class LocationUpdate(BaseModel):
     name: Optional[str] = None
@@ -18,6 +22,8 @@ class LocationUpdate(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     is_secret: Optional[bool] = None
+    category: Optional[str] = None
+
 
 class Location(BaseModel):
     id: UUID
@@ -28,3 +34,4 @@ class Location(BaseModel):
     latitude: float
     longitude: float
     is_secret: bool
+    category: str
